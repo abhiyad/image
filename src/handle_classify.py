@@ -18,7 +18,7 @@ import math
 
 ################################# utility functions
 
-def select_rgb_white(image): 
+def select_rgb_white(image):
     # white color mask
     lower = np.uint8([120, 120, 120])
     upper = np.uint8([255, 255, 255])
@@ -46,20 +46,30 @@ def filter_region(image, vertices):
     if len(mask.shape)==2:
         cv2.fillPoly(mask, vertices, 255)
     else:
-        cv2.fillPoly(mask, vertices, (255,)*mask.shape[2]) # in case, the input image has a channel dimension        
+        cv2.fillPoly(mask, vertices, (255,)*mask.shape[2]) # in case, the input image has a channel dimension
     return cv2.bitwise_and(image, mask)
 def select_region(image):
     rows, cols = image.shape[:2]
     bottom_left  = [cols*0.1, rows*0.95]
     top_left     = [cols*0.4, rows*0.6]
     bottom_right = [cols*0.9, rows*0.95]
-    top_right    = [cols*0.6, rows*0.6] 
+    top_right    = [cols*0.6, rows*0.6]
     # the vertices are an array of polygons (i.e array of arrays) and the data type must be integer
     vertices = np.array([[bottom_left, top_left, top_right, bottom_right]], dtype=np.int32)
     return filter_region(image, vertices)
 
-    
+
 ##################################################################
+
+def hue(X):
+  print("hue at %d"%X)
+
+def sat(X):
+  print("sat at %d"%X)
+
+def val(X):
+  print("Val at %d"%X)
+
 
 class image_converter:
 
@@ -84,6 +94,12 @@ class image_converter:
     cv_image = select_region(original)
 
     cv2.imshow("Image window", cv_image)
+
+
+    cv2.createTrackbar('hue',"Image window",0,179,hue)
+    cv2.createTrackbar('sat',"Image window",0,255,sat)
+    cv2.createTrackbar('Val',"Image window",0,255,val)
+
     cv2.waitKey(3)
 
     try:
