@@ -61,9 +61,15 @@ def select_region(image):
 
 ##################################################################
 
-def nothing(X):
-  print("TrackBar at %d"%X)
-  pass
+def hue(X):
+  print("hue at %d"%X)
+
+def sat(X):
+  print("sat at %d"%X)
+
+def val(X):
+  print("Val at %d"%X)
+
 
 class image_converter:
 
@@ -89,7 +95,10 @@ class image_converter:
 
     cv2.imshow("Image window", cv_image)
 
-    cv2.createTrackbar('Image window TrackBar',"Image window",0,255,nothing)
+
+    cv2.createTrackbar('hue',"Image window",0,179,hue)
+    cv2.createTrackbar('sat',"Image window",0,255,sat)
+    cv2.createTrackbar('Val',"Image window",0,255,val)
 
     cv2.waitKey(3)
 
