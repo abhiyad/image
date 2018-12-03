@@ -23,24 +23,30 @@ canny_thresh_high = 150
 
 
 def hue(X):
+	global hue_thresh
 	hue_thresh = X
 	#print("hue at %d"%X)
 
 def sat(X):
+	global sat_thresh
 	sat_thresh = X
 	#print("sat at %d"%X)
 
 def val(X):
+	global val_thresh
 	val_thresh = X
 	#print("Val at %d"%X)
 
 def canny_low(X):
-	canny_low_thresh = X
+	global canny_thresh_low
+	canny_thresh_low = X
 	#print("canny_low_thresh at %d"%X)
 
 def canny_high(X):
-	canny_high_thresh = X
+	global canny_thresh_high
+	canny_thresh_high = X
 	#print("canny_high_thresh at %d"%X)
+
 
 ################################# utility functions
 
@@ -63,10 +69,10 @@ def select_hsv_white(image):
     return white_mask
 def convert_gray_scale(image):
     return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-def apply_smoothing(image, kernel_size=15):
+def apply_smoothing(image,kernel_size=15):
     return cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
-def detect_edges(image, low_threshold=5, high_threshold=150):
-    return cv2.Canny(image, low_threshold, high_threshold)
+def detect_edges(image):
+    return cv2.Canny(image, canny_thresh_low, canny_thresh_low)
 def filter_region(image, vertices):
     mask = np.zeros_like(image)
     if len(mask.shape)==2:
@@ -99,10 +105,10 @@ class image_converter:
     self.image_sub = rospy.Subscriber("/cv_camera/image_raw",Image,self.callback)
 
   def callback(self,data):
-    try:
-      cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-    except CvBridgeError as e:
-      print(e)
+	try:
+	  cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
+	except CvBridgeError as e:
+	  print(e)
 
     # (rows,cols,channels) = cv_image.shape
     # if cols > 60 and rows > 60 :
@@ -112,26 +118,26 @@ class image_converter:
     # original = cv_image
     # cv_image = select_region(original)
 
-    t1=select_hsv_white(cv_image)
+	t1=select_hsv_white(cv_image)
 	kernel = np.ones((2,2),np.uint8)
 	t2 = cv2.erode(t1,kernel,iterations = 1)
 	t2=select_region(t2)
 
-    cv2.imshow("Image window", cv_image)
+	cv2.imshow("Image window", t2)
 
 
-    cv2.createTrackbar('hue',"Image window",0,179,hue)
-    cv2.createTrackbar('sat',"Image window",0,255,sat)
-    cv2.createTrackbar('Val',"Image window",0,255,val)
-    cv2.createTrackbar('canny_low_threshold',"Image window",0,99,canny_low)
-    cv2.createTrackbar('canny_high_threshold',"Image window",0,99,canny_high)
+	cv2.createTrackbar('hue',"Image window",0,179,hue)
+	cv2.createTrackbar('sat',"Image window",0,255,sat)
+	cv2.createTrackbar('Val',"Image window",0,255,val)
+	cv2.createTrackbar('canny_low_threshold',"Image window",0,99,canny_low)
+	cv2.createTrackbar('canny_high_threshold',"Image window",0,99,canny_high)
 
-    cv2.waitKey(3)
+	cv2.waitKey(3)
 
-    try:
-      self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
-    except CvBridgeError as e:
-      print(e)
+	try:
+	  self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "bgr8"))
+	except CvBridgeError as e:
+	  print(e)
 
 def main(args):
   ic = image_converter()
