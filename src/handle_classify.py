@@ -15,6 +15,32 @@ import os, glob
 import numpy as np
 import math
 
+hue_thresh = 0
+sat_thresh = 100
+val_thresh = 0
+canny_thresh_low = 5
+canny_thresh_high = 150
+
+
+def hue(X):
+	hue_thresh = X
+	#print("hue at %d"%X)
+
+def sat(X):
+	sat_thresh = X
+	#print("sat at %d"%X)
+
+def val(X):
+	val_thresh = X
+	#print("Val at %d"%X)
+
+def canny_low(X):
+	canny_low_thresh = X
+	#print("canny_low_thresh at %d"%X)
+
+def canny_high(X):
+	canny_high_thresh = X
+	#print("canny_high_thresh at %d"%X)
 
 ################################# utility functions
 
@@ -28,10 +54,10 @@ def convert_hsv(image):
     return cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 def convert_hls(image):
     return cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-def select_white_yellow(image):
-    converted = convert_hls(image)
+def select_hsv_white(image):
+    converted = convert_hsv(image)
     # white color mask
-    lower = np.uint8([  0, 200,   0])
+    lower = np.uint8([  hue_thresh, sat_thresh,   val_thresh])
     upper = np.uint8([255, 255, 255])
     white_mask = cv2.inRange(converted, lower, upper)
     return white_mask
@@ -61,14 +87,7 @@ def select_region(image):
 
 ##################################################################
 
-def hue(X):
-  print("hue at %d"%X)
 
-def sat(X):
-  print("sat at %d"%X)
-
-def val(X):
-  print("Val at %d"%X)
 
 
 class image_converter:
@@ -90,8 +109,13 @@ class image_converter:
     #   cv2.circle(cv_image, (50,50), 10, 255)
 
     # Do your processing here, see syntax as above
-    original = cv_image
-    cv_image = select_region(original)
+    # original = cv_image
+    # cv_image = select_region(original)
+
+    t1=select_hsv_white(cv_image)
+	kernel = np.ones((2,2),np.uint8)
+	t2 = cv2.erode(t1,kernel,iterations = 1)
+	t2=select_region(t2)
 
     cv2.imshow("Image window", cv_image)
 
@@ -99,6 +123,8 @@ class image_converter:
     cv2.createTrackbar('hue',"Image window",0,179,hue)
     cv2.createTrackbar('sat',"Image window",0,255,sat)
     cv2.createTrackbar('Val',"Image window",0,255,val)
+    cv2.createTrackbar('canny_low_threshold',"Image window",0,99,canny_low)
+    cv2.createTrackbar('canny_high_threshold',"Image window",0,99,canny_high)
 
     cv2.waitKey(3)
 
