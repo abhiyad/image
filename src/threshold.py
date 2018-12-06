@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import roslib
-roslib.load_manifest('image')
 import sys
-import rospy
 import cv2
-from std_msgs.msg import String
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge, CvBridgeError
 import matplotlib.pyplot as plt
-import cv2
 import os, glob
 import numpy as np
 import math
@@ -55,10 +48,13 @@ def select_rgb_white(image):
   upper = np.uint8([255, 255, 255])
   white_mask = cv2.inRange(image, lower, upper)
   return white_mask
+
 def convert_hsv(image):
   return cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+
 def convert_hls(image):
   return cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+
 def select_hsv_white(image):
   converted = convert_hsv(image)
   # white color mask
@@ -66,12 +62,16 @@ def select_hsv_white(image):
   upper = np.uint8([255, 255, 255])
   white_mask = cv2.inRange(converted, lower, upper)
   return white_mask
+
 def convert_gray_scale(image):
   return cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+
 def apply_smoothing(image,kernel_size=15):
   return cv2.GaussianBlur(image, (kernel_size, kernel_size), 0)
+
 def detect_edges(image):
   return cv2.Canny(image, canny_thresh_low, canny_thresh_low)
+
 def filter_region(image, vertices):
   mask = np.zeros_like(image)
   if len(mask.shape)==2:
@@ -79,6 +79,7 @@ def filter_region(image, vertices):
   else:
     cv2.fillPoly(mask, vertices, (255,)*mask.shape[2]) # in case, the input image has a channel dimension
     return cv2.bitwise_and(image, mask)
+
 def select_region(image):
   rows, cols = image.shape[:2]
   bottom_left  = [cols*0.1, rows*0.95]
@@ -99,12 +100,9 @@ def denoise(mask,kernel_size,iterations):
 ##################################################################
 
 def thresholdModel(cv_image):
-
   t1=select_hsv_white(cv_image)
-
   kernel = np.ones((kernel_size,kernel_size),np.uint8)
-  t2 = cv2.erode(t1,kernel,iterations = erode_iterations)
-  mask=t1
+  mask = cv2.erode(t1,kernel,iterations = erode_iterations)
   mask=denoise(mask,kernel_size,erode_iterations)
 
   cv2.imshow("Image window", mask)
@@ -117,4 +115,4 @@ def thresholdModel(cv_image):
   cv2.createTrackbar('erode_iterations',"Image window",0,4,iterations_change)
 
   cv2.waitKey(3)
-  return t2
+  return mask
