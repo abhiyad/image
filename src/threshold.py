@@ -35,7 +35,7 @@ def kernel_change(X):
 
 def iterations_change(X):
   global erode_iterations
-  erode_iterations = X
+  erode_iterations = max(1,X)
 
 def sat(X):
   global sat_thresh
