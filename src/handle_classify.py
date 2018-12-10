@@ -25,8 +25,11 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    from threshold import thresholdModel
-    t2 = thresholdModel(cv_image)
+    # from threshold import thresholdModel
+    # t2 = thresholdModel(cv_image)
+
+    from advanced_lane_detection.advanced import advancedModel
+    t2 = advancedModel(cv_image)
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "bgr8"))
