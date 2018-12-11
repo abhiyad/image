@@ -11,7 +11,6 @@ from cv_bridge import CvBridge, CvBridgeError
 import os, glob
 import cv2
 
-from threshold import thresholdModel
 from advanced_lane_detection.advanced import advancedModel
 
 class image_converter:
@@ -29,9 +28,7 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    t2 = thresholdModel(cv_image)
-
-    # t2 = advancedModel(cv_image)
+    t2 = advancedModel(cv_image)
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "8UC1"))
