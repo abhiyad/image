@@ -10,6 +10,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import os, glob
 import cv2
+from threshold import thresholdModel
 
 class image_converter:
 
@@ -25,7 +26,6 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    from threshold import thresholdModel
     t2 = thresholdModel(cv_image)
 
     try:
