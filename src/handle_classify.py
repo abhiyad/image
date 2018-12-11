@@ -11,6 +11,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import os, glob
 import cv2
 
+from threshold import thresholdModel
 from advanced_lane_detection.advanced import advancedModel
 
 class image_converter:
@@ -19,8 +20,8 @@ class image_converter:
     self.image_pub = rospy.Publisher("segmented_image",Image,queue_size=1000)
 
     self.bridge = CvBridge()
-    # self.image_sub = rospy.Subscriber("/cv_camera/image_raw",Image,self.callback)
-    self.image_sub = rospy.Subscriber("/zed/left/image_rect_color",Image,self.callback)
+    self.image_sub = rospy.Subscriber("/cv_camera/image_raw",Image,self.callback)
+    # self.image_sub = rospy.Subscriber("/zed/left/image_rect_color",Image,self.callback)
 
   def callback(self,data):
     try:
@@ -28,7 +29,9 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
 
-    t2 = advancedModel(cv_image)
+    t2 = thresholdModel(cv_image)
+
+    # t2 = advancedModel(cv_image)
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "8UC1"))
