@@ -7,7 +7,18 @@ import matplotlib.pyplot as plt
 import os, glob
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+import scipy.fftpack as fp
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+from time import time
+import json
+from PIL import Image
 
+
+
+nwindows=20
+polydeg=7
 hue_thresh = 0
 sat_thresh = 0
 val_thresh = 185
@@ -110,13 +121,14 @@ def denoise(mask,kernel_size,iterations):
 
 ##################################################################
 
+
 def thresholdModel(cv_image):
   cv_image = apply_gaussian_blur(cv_image,gaussian_kernel_size)
   t1=select_hsv_white(cv_image)
   kernel = np.ones((kernel_size,kernel_size),np.uint8)
   mask = cv2.erode(t1,kernel,iterations = erode_iterations)
-  mask=denoise(mask,kernel_size,erode_iterations)
-
+  mask = denoise(mask,kernel_size,erode_iterations)
+  #mask = drawLane(mask)
   cv2.imshow("Image window", mask)
 
   cv2.createTrackbar('hue',"Image window",0,179,hue)
@@ -129,4 +141,5 @@ def thresholdModel(cv_image):
 
 
   cv2.waitKey(3)
+  return mask
   return mask

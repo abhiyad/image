@@ -21,7 +21,7 @@ from PIL import Image
 
 nwindows=20
 
-polydeg=7
+polydeg=3
 
 def denoise(mask,kernel_size,iterations):
     element = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size,kernel_size))
@@ -129,10 +129,7 @@ def drawLane(img):
 	mask = mask == 0
 	i=img*mask
 	i=denoise(i,2,1)
-	t=time.time()
 	res = line_fit(i)
-	print(time.time()-t)
-	print(i.shape)
 
 	f=Image.fromarray(i)
 	# f.show()
@@ -248,11 +245,12 @@ def drawLane(img):
 	img = cv2.addWeighted(llane,1,rlane,1,0)
 	# cv2.imshow("Final Image",img)
 	# cv2.waitKey(0)
+        #img = 255*(img>0)
 	return img
 
 
-img=cv2.imread('test.jpg',0)
-img = cv2.resize(img,(640,480))
-c=drawLane(img)
-plt.imshow(c)
-plt.show()
+#img=cv2.imread('test.jpg',0)
+#img = cv2.resize(img,(640,480))
+#c=drawLane(img)
+#plt.imshow(c)
+#plt.show()

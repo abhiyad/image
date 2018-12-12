@@ -10,10 +10,12 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import os, glob
 import cv2
-
+import matplotlib.pyplot as plt
+import numpy as np
 from threshold import thresholdModel
 # from advanced_lane_detection.advanced import advancedModel
 from fit import drawLane
+c=0
 class image_converter:
 
   def __init__(self):
@@ -28,12 +30,21 @@ class image_converter:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
-
     t2 = thresholdModel(cv_image)
-    t2 = drawLane(t2)
-
+    a=t2
     try:
-      self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "8UC1"))
+        t2 = drawLane(t2)
+    except:
+        print("ERROR")
+    t2 = t2.astype(np.uint8)
+    #print(np.unique(t2))
+    #print(type(a),type(a[0][0]))
+    #print(type(t2),type(t2[0][0]))
+    #cv2.imshow(t2)
+    #plt.imshow(t2)
+    #plt.savefig('./lanes/xyz%d.jpg'%c)
+    try:
+      self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2,"8UC1"))
     except CvBridgeError as e:
       print(e)
 
