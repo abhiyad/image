@@ -19,7 +19,7 @@ import json
 import time
 from PIL import Image
 
-nwindows=21
+nwindows=20
 
 polydeg=7
 
@@ -252,4 +252,7 @@ def drawLane(img):
 
 
 img=cv2.imread('test.jpg',0)
-drawLane(img)
+img = cv2.resize(img,(640,480))
+c=drawLane(img)
+plt.imshow(c)
+plt.show()
