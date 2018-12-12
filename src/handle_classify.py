@@ -12,8 +12,8 @@ import os, glob
 import cv2
 
 from threshold import thresholdModel
-from advanced_lane_detection.advanced import advancedModel
-from combined_thresh import *
+# from advanced_lane_detection.advanced import advancedModel
+from fit import drawLane
 class image_converter:
 
   def __init__(self):
@@ -28,7 +28,9 @@ class image_converter:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
+
     t2 = thresholdModel(cv_image)
+    t2 = drawLane(t2)
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2, "8UC1"))

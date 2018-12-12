@@ -4,7 +4,7 @@
 # In[25]:
 
 
-from skimage.io import imread
+# from skimage.io import imread
 import matplotlib.pyplot as plt
 import scipy.fftpack as fp
 import numpy as np
@@ -19,7 +19,7 @@ import json
 import time
 from PIL import Image
 
-nwindows=20
+nwindows=21
 
 polydeg=7
 
@@ -135,12 +135,12 @@ def drawLane(img):
 	print(i.shape)
 
 	f=Image.fromarray(i)
-	f.show()
+	# f.show()
 
 
 	left_w=np.zeros(shape=(1,polydeg+1))
 	right_w=np.zeros(shape=(1,polydeg+1))
-	left_w[0] = res['left_fit'] # order is x^polydeg ,... , x^2 , X^1 , x^0 
+	left_w[0] = res['left_fit'] # order is x^polydeg ,... , x^2 , X^1 , x^0
 	right_w[0] = res['right_fit']
 
 	left_lane=[]
@@ -149,26 +149,26 @@ def drawLane(img):
 	left_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
 	right_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
 
-	left_features = np.zeros(shape=(num+1,polydeg+1))
+	left_features = np.zeros(shape=(num,polydeg+1))
 	for j in range(polydeg):
 		left_features[:,j] = left_x**(polydeg-j)
-	left_features[:,polydeg] = np.ones(num+1)
+	left_features[:,polydeg] = np.ones(num)
 
-	right_features = np.zeros(shape=(num+1,polydeg+1))
-	right_features[:,2] = np.ones(num+1)
+	right_features = np.zeros(shape=(num,polydeg+1))
+	right_features[:,polydeg] = np.ones(num)
 	for j in range(polydeg):
 		right_features[:,j] = right_x**(polydeg-j)
-	right_features[:,polydeg] = np.ones(num+1)
+	right_features[:,polydeg] = np.ones(num)
 
 	y_left = np.dot(left_w,np.transpose(left_features))
 	y_right = np.dot(right_w,np.transpose(right_features))
 
-	pts_left = np.zeros(shape=(2,num+1))
+	pts_left = np.zeros(shape=(2,num))
 	pts_left[0] = y_left
 	pts_left[1] = left_x
 	pts_left=np.transpose(pts_left)
 
-	pts_right = np.zeros(shape=(2,num+1))
+	pts_right = np.zeros(shape=(2,num))
 	pts_right[0] = y_right
 	pts_right[1] = right_x
 	pts_right=np.transpose(pts_right)
@@ -186,7 +186,7 @@ def drawLane(img):
 	lefty=res['left_y']
 	rightx=res['right_x']
 	righty=res['right_y']
-	
+
 	# print(leftx.shape[0],"     ", lefty.shape[0])
 	# print(rightx.shape[0],"     ", righty.shape[0])
 
@@ -224,8 +224,8 @@ def drawLane(img):
 	rlane[:right_min_pt,:]=0
 	rlane[right_max_pt:,:]=0
 
-	
-	
+
+
 	#using points
 	# llane=cv2.polylines(llane,[left],False,(255,255,255),2)
 	# llane[:left_min_pt,:]=0
@@ -235,15 +235,20 @@ def drawLane(img):
 	# rlane[right_max_pt:,:]=0
 
 	gl=Image.fromarray(llane)
-	gl.show()
+	# gl.show()
 
 	gr=Image.fromarray(rlane)
-	gr.show()
+	# gr.show()
 
 
 	t=res['out_img']
 	h=Image.fromarray(t)
-	h.show()
+	# h.show()
+
+	img = cv2.addWeighted(llane,1,rlane,1,0)
+	# cv2.imshow("Final Image",img)
+	# cv2.waitKey(0)
+	return img
 
 
 img=cv2.imread('test.jpg',0)
