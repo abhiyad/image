@@ -15,6 +15,7 @@ canny_thresh_low = 5
 canny_thresh_high = 150
 
 kernel_size = 2
+gaussian_kernel_size = 0
 erode_iterations = 1
 
 def hue(X):
@@ -39,6 +40,11 @@ def val(X):
   global val_thresh
   val_thresh = X
   #print("Val at %d"%X)
+
+def gaussian_kernel(X):
+  global gaussian_kernel_size
+  gaussian_kernel_size = X
+
 
 ################################# utility functions
 
@@ -79,6 +85,9 @@ def filter_region(image, vertices):
   else:
     cv2.fillPoly(mask, vertices, (255,)*mask.shape[2]) # in case, the input image has a channel dimension
     return cv2.bitwise_and(image, mask)
+def apply_gaussian_blur(image,kernel_size):
+  ret = cv2.GaussianBlur(image,(kernel_size-kernel_size%2+1,kernel_size-kernel_size%2+1),0)
+  return ret
 
 def select_region(image):
   rows, cols = image.shape[:2]
@@ -94,12 +103,15 @@ def denoise(mask,kernel_size,iterations):
   element = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size,kernel_size))
   for i in range(erode_iterations):
     mask = cv2.erode(mask, element, iterations = 1)
+    mask = cv2.erode(mask, element, iterations = 1)
+    mask = cv2.dilate(mask, element, iterations = 1)
     mask = cv2.dilate(mask, element, iterations = 1)
     return mask
 
 ##################################################################
 
 def thresholdModel(cv_image):
+  cv_image = apply_gaussian_blur(cv_image,gaussian_kernel_size)
   t1=select_hsv_white(cv_image)
   kernel = np.ones((kernel_size,kernel_size),np.uint8)
   mask = cv2.erode(t1,kernel,iterations = erode_iterations)
@@ -113,6 +125,8 @@ def thresholdModel(cv_image):
 
   cv2.createTrackbar('erode_kernel_size',"Image window",0,15,kernel_change)
   cv2.createTrackbar('erode_iterations',"Image window",0,4,iterations_change)
+  cv2.createTrackbar('Gaussian Kernel Size',"Image window",0,11,gaussian_kernel)
+
 
   cv2.waitKey(3)
   return mask
