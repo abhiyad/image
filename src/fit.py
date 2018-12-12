@@ -1,8 +1,4 @@
 
-# coding: utf-8
-
-# In[25]:
-
 
 # from skimage.io import imread
 import matplotlib.pyplot as plt
@@ -39,14 +35,14 @@ def line_fit(binary_warped):
 	"""
 	# Assuming you have created a warped binary image called "binary_warped"
 	# Take a histogram of the bottom half of the image
-	histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
+	histogram = np.sum(binary_warped[:,:], axis=0)
 	# Create an output image to draw on and visualize the result
 	out_img = (np.dstack((binary_warped, binary_warped, binary_warped))*255).astype('uint8')
 	# Find the peak of the left and right halves of the histogram
 	# These will be the starting point for the left and right lines
 	midpoint = np.int(histogram.shape[0]/2)
-	leftx_base = np.argmax(histogram[100:midpoint]) + 100
-	rightx_base = np.argmax(histogram[midpoint:-100]) + midpoint
+	leftx_base = np.argmax(histogram[:midpoint])
+	rightx_base = np.argmax(histogram[midpoint:])+midpoint
 
 	# Choose the number of sliding windows
 	# Defined as global
@@ -249,8 +245,8 @@ def drawLane(img):
 	return img
 
 
-#img=cv2.imread('test.jpg',0)
-#img = cv2.resize(img,(640,480))
-#c=drawLane(img)
-#plt.imshow(c)
-#plt.show()
+# img=cv2.imread('test.jpg',0)
+# img = cv2.resize(img,(640,480))
+# c=drawLane(img)
+# plt.imshow(c)
+# plt.show()
