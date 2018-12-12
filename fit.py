@@ -17,6 +17,12 @@ import matplotlib.image as mpimg
 from time import time
 import json
 import time
+from PIL import Image
+
+nwindows=20
+
+polydeg=7
+
 def denoise(mask,kernel_size,iterations):
     element = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size,kernel_size))
     for i in range(iterations):
@@ -43,7 +49,8 @@ def line_fit(binary_warped):
 	rightx_base = np.argmax(histogram[midpoint:-100]) + midpoint
 
 	# Choose the number of sliding windows
-	nwindows = 9
+	# Defined as global
+
 	# Set height of windows
 	window_height = np.int(binary_warped.shape[0]/nwindows)
 	# Identify the x and y positions of all nonzero pixels in the image
@@ -54,9 +61,9 @@ def line_fit(binary_warped):
 	leftx_current = leftx_base
 	rightx_current = rightx_base
 	# Set the width of the windows +/- margin
-	margin = 50
+	margin = 100
 	# Set minimum number of pixels found to recenter window
-	minpix = 50
+	minpix = 100
 	# Create empty lists to receive left and right lane pixel indices
 	left_lane_inds = []
 	right_lane_inds = []
@@ -96,13 +103,17 @@ def line_fit(binary_warped):
 	righty = nonzeroy[right_lane_inds]
 
 	# Fit a second order polynomial to each
-	left_fit = np.polyfit(lefty, leftx, 2)
-	right_fit = np.polyfit(righty, rightx, 2)
+	left_fit = np.polyfit(lefty, leftx, polydeg)
+	right_fit = np.polyfit(righty, rightx, polydeg)
 	# print("DONE polyfit")
 	# Return a dict of relevant variables
 	ret = {}
 	ret['left_fit'] = left_fit
 	ret['right_fit'] = right_fit
+	ret['left_x']=leftx
+	ret['left_y']=lefty
+	ret['right_x']=rightx
+	ret['right_y']=righty
 	ret['nonzerox'] = nonzerox
 	ret['nonzeroy'] = nonzeroy
 	ret['out_img'] = out_img
@@ -111,110 +122,129 @@ def line_fit(binary_warped):
 
 	return ret
 
-img = cv2.imread('test.jpg',0)
-mask = np.zeros(shape=(img.shape[0],img.shape[1]))
-mask [0:120,:]=1
-mask = mask == 0
-i=img*mask
-i=denoise(i,2,1)
-t=time.time()
-res = line_fit(i)
-print(time.time()-t)
-print(i.shape)
-from PIL import Image
-f=Image.fromarray(i)
-f.show()
+
+def drawLane(img):
+	mask = np.zeros(shape=(img.shape[0],img.shape[1]))
+	mask [0:120,:]=1
+	mask = mask == 0
+	i=img*mask
+	i=denoise(i,2,1)
+	t=time.time()
+	res = line_fit(i)
+	print(time.time()-t)
+	print(i.shape)
+
+	f=Image.fromarray(i)
+	f.show()
 
 
-# In[15]:
+	left_w=np.zeros(shape=(1,polydeg+1))
+	right_w=np.zeros(shape=(1,polydeg+1))
+	left_w[0] = res['left_fit'] # order is x^polydeg ,... , x^2 , X^1 , x^0 
+	right_w[0] = res['right_fit']
+
+	left_lane=[]
+	right_lane=[]
+	num=nwindows
+	left_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
+	right_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
+
+	left_features = np.zeros(shape=(num+1,polydeg+1))
+	for j in range(polydeg):
+		left_features[:,j] = left_x**(polydeg-j)
+	left_features[:,polydeg] = np.ones(num+1)
+
+	right_features = np.zeros(shape=(num+1,polydeg+1))
+	right_features[:,2] = np.ones(num+1)
+	for j in range(polydeg):
+		right_features[:,j] = right_x**(polydeg-j)
+	right_features[:,polydeg] = np.ones(num+1)
+
+	y_left = np.dot(left_w,np.transpose(left_features))
+	y_right = np.dot(right_w,np.transpose(right_features))
+
+	pts_left = np.zeros(shape=(2,num+1))
+	pts_left[0] = y_left
+	pts_left[1] = left_x
+	pts_left=np.transpose(pts_left)
+
+	pts_right = np.zeros(shape=(2,num+1))
+	pts_right[0] = y_right
+	pts_right[1] = right_x
+	pts_right=np.transpose(pts_right)
+
+	pts_left = pts_left.astype(int)
+	pts_right = pts_right.astype(int)
+
+	# for i in range(pts_left.shape[0]):
+	# 	print(pts_left, "   ",pts_right)
+
+	pts_left = pts_left.reshape((-1,1,2))
+	pts_right = pts_right.reshape((-1,1,2))
+
+	leftx=res['left_x']
+	lefty=res['left_y']
+	rightx=res['right_x']
+	righty=res['right_y']
+	
+	# print(leftx.shape[0],"     ", lefty.shape[0])
+	# print(rightx.shape[0],"     ", righty.shape[0])
 
 
-left_w=np.zeros(shape=(1,3))
-right_w=np.zeros(shape=(1,3))
-left_w[0] = res['left_fit'] # order is x^2 , X^1 , x^0 
-right_w[0] = res['right_fit']
+	left = np.zeros(shape=(2,leftx.shape[0]))
+	left[0] = leftx
+	left[1] = lefty
+	left=np.transpose(left)
+
+	right = np.zeros(shape=(2,rightx.shape[0]))
+	right[0] = rightx
+	right[1] = righty
+	right=np.transpose(right)
+
+	left = left.astype(int)
+	right = right.astype(int)
 
 
-# In[16]:
+	left = left.reshape((-1,1,2))
+	right = right.reshape((-1,1,2))
+
+	llane = np.zeros(shape=(img.shape[0],img.shape[1]))
+	rlane = np.zeros(shape=(img.shape[0],img.shape[1]))
+
+	right_max_pt=max(righty)
+	right_min_pt=min(righty)
+	left_max_pt=max(lefty)
+	left_min_pt=min(lefty)
+
+	#using polyfit
+	llane=cv2.polylines(llane,[pts_left],False,(255,255,255),2)
+	llane[:left_min_pt,:]=0
+	llane[left_max_pt:,:]=0
+	rlane=cv2.polylines(rlane,[pts_right],False,(255,255,255),2)
+	rlane[:right_min_pt,:]=0
+	rlane[right_max_pt:,:]=0
+
+	
+	
+	#using points
+	# llane=cv2.polylines(llane,[left],False,(255,255,255),2)
+	# llane[:left_min_pt,:]=0
+	# llane[left_max_pt:,:]=0
+	# rlane=cv2.polylines(rlane,[right],False,(255,255,255),2)
+	# rlane[:right_min_pt,:]=0
+	# rlane[right_max_pt:,:]=0
+
+	gl=Image.fromarray(llane)
+	gl.show()
+
+	gr=Image.fromarray(rlane)
+	gr.show()
 
 
-left_lane=[]
-right_lane=[]
-num=20
-left_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
-right_x =  np.arange(0, img.shape[0], int(img.shape[0]/num))
+	t=res['out_img']
+	h=Image.fromarray(t)
+	h.show()
 
 
-# In[17]:
-
-
-left_features = np.zeros(shape=(num+1,3))
-left_features[:,2] = np.ones(num+1)
-left_features[:,1] = left_x
-left_features[:,0] = left_x**2
-
-
-# In[18]:
-
-
-right_features = np.zeros(shape=(num+1,3))
-right_features[:,2] = np.ones(num+1)
-right_features[:,1] = left_x
-right_features[:,0] = left_x**2
-
-
-# In[19]:
-
-
-y_left = np.dot(left_w,np.transpose(left_features))
-y_right = np.dot(right_w,np.transpose(right_features))
-
-
-# In[20]:
-
-
-pts_left = np.zeros(shape=(2,21))
-pts_left[0] = y_left
-pts_left[1] = left_x
-pts_left=np.transpose(pts_left)
-
-
-# In[21]:
-
-
-pts_right = np.zeros(shape=(2,21))
-pts_right[0] = y_right
-pts_right[1] = right_x
-pts_right=np.transpose(pts_right)
-
-
-# In[22]:
-
-
-pts_left = pts_left.astype(int)
-pts_right = pts_right.astype(int)
-
-
-# In[23]:
-
-
-pts_left = pts_left.reshape((-1,1,2))
-pts_right = pts_right.reshape((-1,1,2))
-i=cv2.polylines(i,[pts_left],True,(255,255,255))
-i=cv2.polylines(i,[pts_right],True,(255,255,255))
-
-
-# In[24]:
-
-
-t=res['out_img']
-h=Image.fromarray(t)
-h.show()
-
-
-# In[12]:
-
-
-t=res['right_lane_inds']
-t.shape
-
+img=cv2.imread('test.jpg',0)
+drawLane(img)
