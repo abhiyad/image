@@ -26,7 +26,7 @@ canny_thresh_low = 5
 canny_thresh_high = 150
 
 kernel_size = 2
-gaussian_kernel_size = 0
+gaussian_kernel_size = 1
 erode_iterations = 1
 
 def hue(X):
