@@ -216,37 +216,17 @@ def drawLane(img):
 	rlane=cv2.polylines(rlane,[pts_right],False,(255,255,255),2)
 	rlane[:right_min_pt,:]=0
 	rlane[right_max_pt:,:]=0
-
-
-
-	#using points
-	# llane=cv2.polylines(llane,[left],False,(255,255,255),2)
-	# llane[:left_min_pt,:]=0
-	# llane[left_max_pt:,:]=0
-	# rlane=cv2.polylines(rlane,[right],False,(255,255,255),2)
-	# rlane[:right_min_pt,:]=0
-	# rlane[right_max_pt:,:]=0
-
+        rlane[right_max_pt:,:]=0
 	gl=Image.fromarray(llane)
-	# gl.show()
-
 	gr=Image.fromarray(rlane)
-	# gr.show()
-
-
 	t=res['out_img']
 	h=Image.fromarray(t)
-	# h.show()
-
 	img = cv2.addWeighted(llane,1,rlane,1,0)
-	# cv2.imshow("Final Image",img)
-	# cv2.waitKey(0)
-        #img = 255*(img>0)
-	return img
+	return img,t
 
 
-# img=cv2.imread('test.jpg',0)
-# img = cv2.resize(img,(640,480))
-# c=drawLane(img)
-# plt.imshow(c)
-# plt.show()
+#img=cv2.imread('gs.jpg',0)
+#img = cv2.resize(img,(640,480))
+#c,d=drawLane(img)
+#plt.imshow(d)
+#plt.show()

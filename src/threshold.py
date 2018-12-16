@@ -21,10 +21,10 @@ nwindows=20
 polydeg=7
 hue_thresh = 0
 sat_thresh = 0
-val_thresh = 185
+val_thresh = 172
 canny_thresh_low = 5
 canny_thresh_high = 150
-
+median_kernel_size=3
 kernel_size = 2
 gaussian_kernel_size = 0
 erode_iterations = 1
@@ -32,7 +32,6 @@ erode_iterations = 1
 def hue(X):
   global hue_thresh
   hue_thresh = X
-  #print("hue at %d"%X)
 
 def kernel_change(X):
   global kernel_size
@@ -55,6 +54,10 @@ def val(X):
 def gaussian_kernel(X):
   global gaussian_kernel_size
   gaussian_kernel_size = X
+
+def median_kernel(X):
+    global median_kernel_size
+    median_kernel_size = max(X,1)
 
 
 ################################# utility functions
@@ -100,6 +103,9 @@ def apply_gaussian_blur(image,kernel_size):
   ret = cv2.GaussianBlur(image,(kernel_size-kernel_size%2+1,kernel_size-kernel_size%2+1),0)
   return ret
 
+def apply_median_blur(image,kernel_size):
+  ret = cv2.medianBlur(image,2*kernel_size + 1)
+  return ret
 def select_region(image):
   rows, cols = image.shape[:2]
   bottom_left  = [cols*0.1, rows*0.95]
@@ -123,23 +129,22 @@ def denoise(mask,kernel_size,iterations):
 
 
 def thresholdModel(cv_image):
-  cv_image = apply_gaussian_blur(cv_image,gaussian_kernel_size)
+  #cv_image = apply_median_blur(cv_image,median_kernel_size)
   t1=select_hsv_white(cv_image)
-  kernel = np.ones((kernel_size,kernel_size),np.uint8)
-  mask = cv2.erode(t1,kernel,iterations = erode_iterations)
-  mask = denoise(mask,kernel_size,erode_iterations)
+  #kernel = np.ones((kernel_size,kernel_size),np.uint8)
+  #mask = cv2.erode(t1,kernel,iterations = erode_iterations)
+  #mask = denoise(mask,kernel_size,erode_iterations)
   #mask = drawLane(mask)
+  mask=apply_median_blur(t1,median_kernel_size)
   cv2.imshow("Image window", mask)
 
   cv2.createTrackbar('hue',"Image window",0,179,hue)
   cv2.createTrackbar('sat',"Image window",0,255,sat)
   cv2.createTrackbar('Val',"Image window",0,255,val)
 
-  cv2.createTrackbar('erode_kernel_size',"Image window",0,15,kernel_change)
-  cv2.createTrackbar('erode_iterations',"Image window",0,4,iterations_change)
-  cv2.createTrackbar('Gaussian Kernel Size',"Image window",0,11,gaussian_kernel)
-
-
+  #cv2.createTrackbar('erode_kernel_size',"Image window",0,15,kernel_change)
+  #cv2.createTrackbar('erode_iterations',"Image window",0,4,iterations_change)
+  #cv2.createTrackbar('Gaussian Kernel Size',"Image window",0,11,gaussian_kernel)
+  cv2.createTrackbar('Median Kernel Size',"Image window",0,11,median_kernel)
   cv2.waitKey(3)
-  return mask
   return mask
