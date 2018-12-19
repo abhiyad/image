@@ -5,25 +5,23 @@ import roslib
 roslib.load_manifest('image')
 import sys
 import rospy
-from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-import os, glob
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from threshold import thresholdModel
-# from advanced_lane_detection.advanced import advancedModel
 from fit import drawLane
 c=0
 class image_converter:
 
   def __init__(self):
-    self.image_pub = rospy.Publisher("segmented_image",Image,queue_size=1000)
+    self.image_pub = rospy.Publisher("/binary_unwarped",Image,queue_size=1000)
 
     self.bridge = CvBridge()
     self.image_sub = rospy.Subscriber("/cv_camera/image_raw",Image,self.callback)
     # self.image_sub = rospy.Subscriber("/zed/left/image_rect_color",Image,self.callback)
+    # self.image_sub = rospy.Subscriber("/top_view",Image,self.callback)
 
   def callback(self,data):
     try:
@@ -31,18 +29,7 @@ class image_converter:
     except CvBridgeError as e:
       print(e)
     t2 = thresholdModel(cv_image)
-    a=t2
-    try:
-        t2 = drawLane(t2)
-    except:
-        print("ERROR")
-    t2 = t2.astype(np.uint8)
-    #print(np.unique(t2))
-    #print(type(a),type(a[0][0]))
-    #print(type(t2),type(t2[0][0]))
-    #cv2.imshow(t2)
-    #plt.imshow(t2)
-    #plt.savefig('./lanes/xyz%d.jpg'%c)
+
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(t2,"8UC1"))
     except CvBridgeError as e:

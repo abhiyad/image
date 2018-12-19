@@ -5,7 +5,7 @@ from PIL import Image
 # Choose the number of sliding windows
 nwindows=20
 # Choose the degree of polynomial line fitting
-polydeg=5
+polydeg=3
 
 def line_fit(binary_warped):
 	# Assuming you have created a warped binary image called "binary_warped"
@@ -153,7 +153,7 @@ def drawLane(img):
 	# h.show()
 	# Adding left and right lanes to one image
 	img = cv2.addWeighted(llane,1,rlane,1,0)
-	return img
+	return img,t
 
 ########################################## For testing only ###################################
 
